@@ -29,6 +29,49 @@ class _ToDoListState extends State<ToDoList> {
         _taskDescriptionEntered = null;
       }
     }
+    Future _editTasksScreen(BuildContext context, int position) async {
+      Map results = await Navigator.of(context)
+          .push(new MaterialPageRoute<Map>(builder: (BuildContext context) {
+        return new EditTask(_listTasks[position], _listTasksDescription[position]);
+      }));
+      if (results != null && results.containsKey('enter')) {
+        print(results['enter'][0].toString());
+        _taskEntered = results['enter'][0];
+        _listTasks[position] = results['enter'][0];
+        _taskDescriptionEntered = results['enter'][1];
+        _listTasksDescription[position] = results['enter'][1];
+      } else {
+        _taskEntered = null;
+        _taskDescriptionEntered = null;
+      }
+    }
+    Widget buildBody(BuildContext ctxt, int index) {
+      return new Container(
+        decoration: new BoxDecoration(
+          border: new Border.all(width: 2,color: Colors.redAccent),
+        ),
+        child: ListTile(
+          onTap: (){
+            _editTasksScreen(context, index);
+          },
+          title: Text(
+            _listTasks[index],
+            style: TextStyle(
+                fontSize: 28.9, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          subtitle: Text(_listTasksDescription[index],
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              )),
+          leading: new FlatButton(
+              onPressed: () => taskFinished(index),
+              textColor: Colors.black,
+              color: Colors.redAccent,
+              child: Text("DO IT", style: TextStyle(fontSize: 20.0),)),
+        ),
+      );
+    }
 
     return Scaffold(
         appBar: new AppBar(
@@ -75,30 +118,7 @@ class _ToDoListState extends State<ToDoList> {
         ));
   }
 
-  Widget buildBody(BuildContext ctxt, int index) {
-    return new Container(
-      decoration: new BoxDecoration(
-          border: new Border.all(width: 2,color: Colors.redAccent),
-      ),
-      child: ListTile(
-        title: Text(
-          _listTasks[index],
-          style: TextStyle(
-              fontSize: 28.9, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        subtitle: Text(_listTasksDescription[index],
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20.0,
-            )),
-        leading: new FlatButton(
-            onPressed: () => taskFinished(index),
-            textColor: Colors.black,
-            color: Colors.redAccent,
-            child: Text("DO IT", style: TextStyle(fontSize: 20.0),)),
-      ),
-    );
-  }
+
 
   void taskFinished(int index) {
     _listTasks.removeAt(index);
@@ -140,9 +160,9 @@ class AddTask extends StatelessWidget {
               new ListTile(
                 title: new TextField(
                   decoration:
-                      new InputDecoration(hintText: 'Enter Task Description'),
+                  new InputDecoration(hintText: 'Enter Task Description'),
                   controller: _taskDescriptionController =
-                      new TextEditingController(),
+                  new TextEditingController(),
                   keyboardType: TextInputType.multiline,
                   maxLines: 5,
                 ),
@@ -161,6 +181,77 @@ class AddTask extends StatelessWidget {
                     textColor: Colors.white,
                     color: Colors.redAccent,
                     child: Text('Add Task')),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+}
+
+
+
+class EditTask extends StatelessWidget {
+  String _initialTitle;
+  String _initialDescription;
+
+
+  EditTask(this._initialTitle, this._initialDescription);
+
+  @override
+  Widget build(BuildContext context) {
+    List<String> _listTasksTitleDescription = [];
+    var _editTaskTitleController = new TextEditingController(text: _initialTitle);
+    var _editTaskDescriptionController = new TextEditingController(text: _initialDescription);
+    return new Scaffold(
+      appBar: new AppBar(
+        backgroundColor: Colors.red,
+        title: new Text('Edit Task'),
+      ),
+      body: new Stack(
+        children: <Widget>[
+          new Center(
+            child: new Image.asset(
+              'assets/add_task.jpg',
+              width: 490.0,
+              height: 1200.0,
+              fit: BoxFit.fill,
+            ),
+          ),
+          new ListView(
+            children: <Widget>[
+              new ListTile(
+                title: new TextField(
+                  decoration: new InputDecoration(hintText: 'Edit Task'),
+                  controller: _editTaskTitleController,
+                  keyboardType: TextInputType.text,
+                ),
+              ),
+              new ListTile(
+                title: new TextField(
+                  decoration:
+                      new InputDecoration(hintText: 'Edit Task Description'),
+                  controller: _editTaskDescriptionController,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 5,
+                ),
+              ),
+              new ListTile(
+                title: new FlatButton(
+                    onPressed: () {
+                      _listTasksTitleDescription
+                          .add(_editTaskTitleController.text);
+                      _listTasksTitleDescription
+                          .add(_editTaskDescriptionController.text);
+                      Navigator.pop(
+                        context,
+                        {'enter': _listTasksTitleDescription},
+                      );
+                    },
+                    textColor: Colors.white,
+                    color: Colors.redAccent,
+                    child: Text('Confirm Edit Task')),
               )
             ],
           )
